@@ -40,6 +40,8 @@ thruster T[6] = {
 
 String inString = "";    // string to hold input
 int n = 0;
+bool blFlag = 0;
+int value[6];
 
 
 void setup() {
@@ -49,9 +51,6 @@ void setup() {
   // send an intro:
   Serial.println("\n\nString toInt():");
   Serial.println();
-
-  T[0].setDirection(1);
-  T[0].setPWM(50);
 }
 
 void loop() {
@@ -59,6 +58,7 @@ void loop() {
   if(Serial.available() > 0) {
     n = 0;
     int inChar = 0;
+    inString = "";  
     while(inChar != '\n'){
       inChar = Serial.read();
       if ((isDigit(inChar)) || (inChar == '-')) {
@@ -74,7 +74,7 @@ void loop() {
         Serial.println(inString);
         Serial.print("POS: ");
         Serial.println(n);
-        //T[n].setPWM(inString.toInt());
+        value[n] = inString.toInt();
         
         // clear the string for new input:
         inString = "";
@@ -83,7 +83,22 @@ void loop() {
         n++;
       }
     }
+    blFlag = true;
   }
+  if(blFlag){
+    blFlag = false;
+    H_Control();
+  }
+}
+
+void H_Control()
+{
+  int i = 0;
+  for(i = 0; i < 6 ; i++){
+    if(value[0] > 0) T[i].setDirection(1);
+    else T[i].setDirection(0);
+        T[i].setPWM(abs(value[i]));
+    }
 }
 
  /*   

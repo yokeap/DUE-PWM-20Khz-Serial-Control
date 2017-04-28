@@ -29,16 +29,17 @@ class thruster{
   }
 };
 
-thruster T[5] = {
+thruster T[6] = {
   thruster(22,5),
   thruster(23,6),
   thruster(24,7),
   thruster(25,8),
   thruster(26,9),
+  thruster(27,10)
   };
 
 String inString = "";    // string to hold input
-int thuster_pos = 0;
+int n = 0;
 
 
 void setup() {
@@ -55,7 +56,37 @@ void setup() {
 
 void loop() {
   // Read serial input:
-  while (Serial.available() > 0) {
+  if(Serial.available() > 0) {
+    n = 0;
+    int inChar = 0;
+    while(inChar != '\n'){
+      inChar = Serial.read();
+      if ((isDigit(inChar)) || (inChar == '-')) {
+      // convert the incoming byte to a char
+      // and add it to the string:
+      inString += (char)inChar;
+      }
+
+      if (inChar == ',') {
+        Serial.print("\nValue:");
+        Serial.println(inString.toInt());
+        Serial.print("String: ");
+        Serial.println(inString);
+        Serial.print("POS: ");
+        Serial.println(n);
+        //T[n].setPWM(inString.toInt());
+        
+        // clear the string for new input:
+        inString = "";
+
+        //increase Thruster Position
+        n++;
+      }
+    }
+  }
+}
+
+ /*   
     int inChar = Serial.read();
     if(inChar == 'A') {
       thuster_pos = 0;
@@ -107,3 +138,5 @@ void loop() {
     }
   }
 }
+
+*/

@@ -46,11 +46,11 @@ int value[6];
 
 void setup() {
   // Open serial communications and wait for port to open:
-  Serial.begin(115200);
+  //Serial.begin(115200);
    Serial1.begin(115200);
   // send an intro:
   // send an intro:
-  Serial.println("\n\nTest:");
+  //Serial.println("\n\nTest:");
 }
 
 void loop() {
@@ -58,8 +58,8 @@ void loop() {
     //Serial.print((char)Serial1.read());
     String inStringRAW = Serial1.readStringUntil('\n');
     inStringRAW += '\n'; 
-    Serial.println(inStringRAW);
-    Serial.println();
+    //Serial.println(inStringRAW);
+    //Serial.println();
     int index = 0;
     n = 0;
      while(inStringRAW.charAt(index) != '\n'){
@@ -67,12 +67,12 @@ void loop() {
         inString += inStringRAW.charAt(index);
       }
       if (inStringRAW.charAt(index)  == ',') {
-        Serial.print("\nValue:");
+        /*Serial.print("\nValue:");
         Serial.println(inString.toInt());
         Serial.print("String: ");
         Serial.println(inString);
         Serial.print("POS: ");
-        Serial.println(n);
+        Serial.println(n);*/
         value[n] = inString.toInt();
         
         // clear the string for new input:
@@ -95,6 +95,7 @@ void H_Control()
 {
   int i = 0;
   for(i = 0; i < 6 ; i++){
+    if((value[i] <= -100) || (value[i]) >= 100) break;
     if(value[0] > 0) T[i].setDirection(1);
     else T[i].setDirection(0);
         T[i].setPWM(abs(value[i]));

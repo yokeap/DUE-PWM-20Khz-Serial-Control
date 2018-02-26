@@ -1,3 +1,5 @@
+#include <Servo.h>
+
 class thruster{
 
   private:
@@ -20,6 +22,7 @@ class thruster{
     if ((_dirPin < 5) || (_dirPin > 9)) {
       analogWriteResolution(8);
       analogWrite(_pwmPin, map(pwm, 0, 100, 0, 255));
+      //analogWrite(_pwmPin, 127);
     }
     else {
       analogWriteResolution(12);
@@ -30,44 +33,62 @@ class thruster{
 };
 
 thruster T[6] = {
-  thruster(22,5),
-  thruster(23,6),
-  thruster(24,7),
-  thruster(25,8),
-  thruster(26,9),
-  thruster(27,10)
+  thruster(22,6),
+  thruster(23,7),
+  thruster(24,8),
+  thruster(25,9),
+  thruster(27,10),
+  thruster(26,11)
   };
 
 String inString = "";    // string to hold input
 int n = 0;
 bool blFlag = 0;
-int value[6];
+int value[8];
+unsigned long timeCount,last_time;
 
+Servo camServo, armServo;
 
 void setup() {
   // Open serial communications and wait for port to open:
+  camServo.attach(2);
+  armServo.attach(3);
   Serial.begin(115200);
-
+   Serial1.begin(115200);
+   delay(100);
   // send an intro:
-  Serial.println("\n\nString toInt():");
-  Serial.println();
+  // send an intro:
+  Serial.println("\n\nTest:");
+  camServo.write(0);
+  armServo.write(0);
 }
 
 void loop() {
-  // Read serial input:
-  if(Serial.available() > 0) {
-    n = 0;
-    int inChar = 0;
-    inString = "";  
-    while(inChar != '\n'){
-      inChar = Serial.read();
-      if ((isDigit(inChar)) || (inChar == '-')) {
-      // convert the incoming byte to a char
-      // and add it to the string:
-      inString += (char)inChar;
-      }
+  timeCount = millis();
 
-      if (inChar == ',') {
+  if((timeCount - last_time) > 2000) {
+    last_time = timeCount;
+    for(int i = 0; i < 6 ; i++){
+     value[i] = 0;
+    }
+    blFlag = true;
+    Serial.println("Reset");
+  }
+  if (Serial1.available() > 0) {
+    //Serial.print((char)Serial1.read());
+    String inStringRAW = Serial1.readStringUntil('\n');
+    inStringRAW += '\n'; 
+    Serial.println(inStringRAW);
+    Serial.println();
+    int index = 0;
+    n = 0;
+    int count = 0;
+     while(inStringRAW.charAt(index) != '\n'){
+      if ((isDigit(inStringRAW.charAt(index))) || (inStringRAW.charAt(index)  == '-')) {
+        inString += inStringRAW.charAt(index);
+        count = 0;
+      }
+      if (inStringRAW.charAt(index)  == ',') {
         Serial.print("\nValue:");
         Serial.println(inString.toInt());
         Serial.print("String: ");
@@ -81,77 +102,44 @@ void loop() {
 
         //increase Thruster Position
         n++;
+        count = 0;
+      }
+      index++;
+      blFlag = true;
+      count++;
+      if(count > 1000) {
+        // clear the string for new input:
+        inString = "";
+
+        //increase Thruster Position
+        n++;
+        blFlag = false;
+        break;
       }
     }
-    blFlag = true;
+    last_time = timeCount;
   }
   if(blFlag){
     blFlag = false;
     H_Control();
+    camServo.write(value[6]);
+    armServo.write(value[7]);
   }
+
+  
 }
 
 void H_Control()
 {
   int i = 0;
   for(i = 0; i < 6 ; i++){
-    if(value[0] > 0) T[i].setDirection(1);
-    else T[i].setDirection(0);
-        T[i].setPWM(abs(value[i]));
+    if((value[i] <= -100) || (value[i]) >= 100) break;
+    if(value[i] > 0) 
+      T[i].setDirection(1);
+    if(value[i] < 0) 
+      T[i].setDirection(0);
+
+        //T[2].setDirection(0);
+        T[i].setPWM(100 - abs(value[i]));
     }
 }
-
- /*   
-    int inChar = Serial.read();
-    if(inChar == 'A') {
-      thuster_pos = 0;
-      inString = "";
-    }
-    if(inChar == 'B') {
-      thuster_pos = 1;
-     inString = "";
-    }
-    if(inChar == 'C') {
-      thuster_pos = 2;
-      inString = "";
-    }
-    if(inChar == 'D') {
-      thuster_pos = 3;
-      inString = "";
-    }
-    if(inChar == 'E') {
-      thuster_pos = 4;
-      inString = "";
-    }
-    if (isDigit(inChar)) {
-      // convert the incoming byte to a char
-      // and add it to the string:
-      inString += (char)inChar;
-      
-    }
-    // if you get a newline, print the string,
-    // then the string's value:
-    if (inChar == ',') {
-      Serial.print("Value:");
-      Serial.println(inString.toInt());
-      Serial.print("String: ");
-      Serial.println(inString);
-      Serial.print("POS: ");
-      Serial.println(thuster_pos);
-      T[0].setPWM(inString.toInt());
-      inString = "";
-      // clear the string for new input:
-    }
-    if(inChar == '\n')
-    {
-      Serial.print("Value:");
-      Serial.println(inString.toInt());
-      Serial.print("String: ");
-      Serial.println(inString);
-      T[thuster_pos].setDirection(inString.toInt());
-      inString = "";
-    }
-  }
-}
-
-*/
